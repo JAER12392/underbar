@@ -108,8 +108,8 @@
         var newArr = [];
         for (var i = 0; i < array.length; i++) {
             var ele = array[i];
-            if(!newArr.includes(ele)){
-              newArr.push(ele);
+            if (!newArr.includes(ele)) {
+                newArr.push(ele);
             }
         }
         return newArr;
@@ -121,8 +121,8 @@
     _.map = function(collection, iterator) {
         var results = [];
 
-        for(var i = 0; i < collection.length; i++){
-          results.push(iterator(collection[i], i, collection));
+        for (var i = 0; i < collection.length; i++) {
+            results.push(iterator(collection[i], i, collection));
         }
         return results;
         // map() is a useful primitive iteration function that works a lot
@@ -170,27 +170,30 @@
     //   }); // should be 5, regardless of the iterator function passed in
     //          No accumulator is given so the first element is used.
     _.reduce = function(collection, iterator, accumulator) {
-      var startAcc = accumulator
-      var initializing = (startAcc === undefined);
-        for(var i = 0; i < collection.length; i++){
-          var ele = collection[i];
-          if(initializing){
-            initializing = false;
-            startAcc = ele;
-          } else {
-            startAcc = iterator(startAcc, ele, i, collection);
-          }
+        var startAcc = accumulator
+        var initializing = (startAcc === undefined);
+        for (var i = 0; i < collection.length; i++) {
+            var ele = collection[i];
+            if (initializing) {
+                initializing = false;
+                startAcc = ele;
+            } else {
+                startAcc = iterator(startAcc, ele, i, collection);
+            }
 
         }
         return startAcc;
     };
 
-   
+    // [1, 2, 3, 4], callback, false
+
+
 
     // Determine if the array or object contains a given value (using `===`).
     _.contains = function(collection, target) {
         // TIP: Many iteration problems can be most easily expressed in
         // terms of reduce(). Here's a freebie to demonstrate!
+        // collection is array //wasFound ---> accumulator and item ----> value
         return _.reduce(collection, function(wasFound, item) {
             if (wasFound) {
                 return true;
@@ -199,16 +202,39 @@
         }, false);
     };
 
+    // var array = [1, 4, 3, 3];
+    // var wow = 4;
+
+    // var woah = array.reduce(function(wasFound, item){
+    //     if(wasFound){
+    //       return true
+    //     }
+    //     return item === wow;
+    // }, false);
+
 
     // Determine whether all of the elements match a truth test.
-    _.every = function(collection, iterator) {
-        // TIP: Try re-using reduce() here.
+    _.every = function(collection, iterator = _.identity) {
+        return _.reduce(collection, function(wasFound, item) {
+            if (!(wasFound)) {
+                return false;
+            }
+
+            return !!(iterator(item));
+
+        }, true);
     };
 
     // Determine whether any of the elements pass a truth test. If no iterator is
     // provided, provide a default one
-    _.some = function(collection, iterator) {
+    _.some = function(collection, iterator = _.identity) {
         // TIP: There's a very clever way to re-use every() here.
+        return _.reduce(collection, function(wasFound, item) {
+            if (wasFound) {
+                return true;
+            }
+            return !!(iterator(item));
+        }, false);
     };
 
 
@@ -230,11 +256,33 @@
     //   }, {
     //     bla: "even more stuff"
     //   }); // obj1 now contains key1, key2, key3 and bla
-    _.extend = function(obj) {};
+
+
+    _.extend = function(obj) {
+        for (var i = 1; i < arguments.length; i++) {
+            for (var key in arguments[i]) {
+                arguments[0][key] = arguments[i][key];
+            }
+        }
+        return arguments[0];
+    };
+
 
     // Like extend, but doesn't ever overwrite a key that already
     // exists in obj
-    _.defaults = function(obj) {};
+   
+      _.defaults = function(obj) {
+       var argList = Array.prototype.slice.call(arguments, 1);
+
+       for(var i = 0; i < argList.length; i++){
+        for(var key in argList[i]){
+            if(!(key in obj)){
+                obj[key] = argList[i][key];
+            }
+        }
+       }
+       return obj;
+    }
 
 
     /**
@@ -276,7 +324,20 @@
     // _.memoize should return a function that, when called, will check if it has
     // already computed the result for the given argument and return that value
     // instead if possible.
-    _.memoize = function(func) {};
+    _.memoize = function(func) {
+        var memory = {};
+
+        return function() {
+            var args = JSON.stringify(Array.prototype.slice.call(arguments));
+            if (!(args in memory)) {
+                memory[args] = func.apply(this, arguments);
+                return memory[args];
+            } else {
+                return memory[args];
+            }
+        };
+
+    };
 
     // Delays a function for the given number of milliseconds, and then calls
     // it with the arguments supplied.
@@ -284,7 +345,12 @@
     // The arguments for the original function are passed after the wait
     // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
     // call someFunction('a', 'b') after 500ms
-    _.delay = function(func, wait) {};
+    _.delay = function(func, wait) {
+        var arrayOfArguments = Array.prototype.slice.call(arguments, 2);
+        setTimeout(function() {
+            return func.apply(null, arrayOfArguments);
+        }, wait);
+    };
 
 
     /**
@@ -297,7 +363,20 @@
     // TIP: This function's test suite will ask that you not modify the original
     // input array. For a tip on how to make a copy of an array, see:
     // http://mdn.io/Array.prototype.slice
-    _.shuffle = function(array) {};
+    _.shuffle = function(array) {
+        var shuffled = Array.prototype.slice.call(array);
+        var counter = array.length;
+
+        for (var i = 0; i < shuffled.length; i++) {
+            var randomIndex = Math.floor(Math.random() * counter);
+            var temporary = shuffled[i];
+            shuffled[i] = shuffled[randomIndex];
+            shuffled[randomIndex] = temporary;
+            counter--;
+        }
+        return shuffled;
+
+    };
 
 
     /**
